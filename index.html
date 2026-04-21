@@ -1,0 +1,1203 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<title>SDPN Command Centre</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root {
+  --black:#0D0D0D; --white:#F5F2EC; --accent:#1B4B8C; --accent-light:#E8EEF7;
+  --red:#C0392B; --red-light:#FCEEED; --gold:#B8860B; --gold-light:#FDF8E8;
+  --green:#1A6640; --green-light:#E8F5ED;
+  --gray-3:#48484A; --gray-4:#8E8E93; --gray-5:#C7C7CC; --gray-6:#E5E5EA; --gray-7:#F2F2F7;
+  --border:rgba(0,0,0,0.08); --shadow-sm:0 1px 3px rgba(0,0,0,0.08);
+  --r:10px; --r-lg:16px; --nav-h:64px;
+}
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
+html{scroll-behavior:smooth;}
+body{font-family:'DM Sans',sans-serif;background:var(--gray-7);color:var(--black);min-height:100vh;font-size:14px;line-height:1.5;padding-bottom:calc(var(--nav-h) + env(safe-area-inset-bottom));}
+
+/* HEADER */
+.header{background:var(--black);padding:0 16px;display:flex;align-items:center;justify-content:space-between;height:52px;position:sticky;top:0;z-index:200;border-bottom:1px solid rgba(255,255,255,0.06);padding-top:env(safe-area-inset-top);}
+.logo{font-family:'DM Serif Display',serif;font-size:17px;color:var(--white);letter-spacing:-0.3px;}
+.logo span{color:#6B9FD4;font-style:italic;}
+.header-right{display:flex;align-items:center;gap:8px;}
+.clock{font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--gray-5);background:rgba(255,255,255,0.05);padding:4px 10px;border-radius:6px;border:1px solid rgba(255,255,255,0.07);}
+
+/* BOTTOM NAV */
+.bottom-nav{position:fixed;bottom:0;left:0;right:0;height:var(--nav-h);padding-bottom:env(safe-area-inset-bottom);background:var(--black);display:flex;align-items:center;justify-content:space-around;border-top:1px solid rgba(255,255,255,0.08);z-index:200;}
+.nav-btn{display:flex;flex-direction:column;align-items:center;gap:3px;padding:8px 6px;border-radius:8px;cursor:pointer;background:none;border:none;color:var(--gray-5);font-family:'DM Sans',sans-serif;font-size:9px;font-weight:500;text-transform:uppercase;letter-spacing:0.5px;transition:color 0.15s;min-width:46px;}
+.nav-btn.active{color:white;}
+.nav-btn .nav-icon{font-size:18px;line-height:1;}
+
+/* MAIN */
+.main{padding:16px;max-width:1440px;margin:0 auto;}
+.section{display:none;}
+.section.active{display:block;}
+
+/* DATE ROW */
+.date-row{display:flex;align-items:flex-end;justify-content:space-between;margin-bottom:16px;gap:8px;flex-wrap:wrap;}
+.date-hero{font-family:'DM Serif Display',serif;font-size:28px;color:var(--black);letter-spacing:-0.8px;line-height:1;}
+.date-hero .weekday{font-family:'DM Sans',sans-serif;font-size:11px;font-weight:500;color:var(--gray-4);text-transform:uppercase;letter-spacing:1.5px;display:block;margin-bottom:3px;}
+.season-tag{font-size:10px;font-weight:600;letter-spacing:0.6px;text-transform:uppercase;padding:4px 10px;border-radius:20px;background:var(--accent);color:white;align-self:flex-start;margin-top:4px;white-space:nowrap;}
+
+/* STAT CARDS */
+.stats-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px;}
+.stat-card{background:white;border-radius:var(--r-lg);border:1px solid var(--border);padding:14px;box-shadow:var(--shadow-sm);}
+.stat-card.full{grid-column:span 2;}
+.stat-label{font-size:9px;font-weight:600;text-transform:uppercase;letter-spacing:1px;color:var(--gray-4);margin-bottom:6px;}
+.stat-value{font-family:'DM Serif Display',serif;font-size:26px;color:var(--black);line-height:1;margin-bottom:3px;}
+.stat-value.green{color:var(--green);}
+.stat-value.accent{color:var(--accent);}
+.stat-value.gold{color:var(--gold);}
+.stat-sub{font-size:10px;color:var(--gray-4);}
+.stat-note{font-size:9px;color:var(--gray-5);margin-top:3px;font-style:italic;}
+.stat-delta{display:inline-flex;align-items:center;gap:3px;font-size:10px;font-weight:600;padding:2px 6px;border-radius:10px;margin-top:5px;}
+.stat-delta.up{color:var(--green);background:var(--green-light);}
+.stat-delta.warn{color:var(--gold);background:var(--gold-light);}
+.progress-wrap{margin:8px 0 3px;}
+.progress-track{width:100%;height:5px;background:var(--gray-6);border-radius:3px;overflow:hidden;}
+.progress-fill{height:100%;border-radius:3px;}
+.progress-fill.green{background:var(--green);}
+.progress-fill.accent{background:var(--accent);}
+.progress-labels{display:flex;justify-content:space-between;margin-top:3px;font-size:9px;color:var(--gray-4);}
+.stat-edit-row{display:flex;align-items:center;gap:6px;margin-top:6px;}
+.stat-edit-input{flex:1;padding:5px 8px;border:1px solid var(--gray-6);border-radius:6px;font-family:'DM Sans',sans-serif;font-size:12px;color:var(--black);background:var(--gray-7);outline:none;}
+.stat-edit-input:focus{border-color:var(--accent);background:white;}
+.stat-save-btn{padding:5px 10px;border-radius:6px;border:none;background:var(--accent);color:white;font-size:11px;font-weight:600;cursor:pointer;font-family:'DM Sans',sans-serif;}
+
+/* CARD */
+.card{background:white;border-radius:var(--r-lg);border:1px solid var(--border);padding:16px;box-shadow:var(--shadow-sm);margin-bottom:12px;}
+.card-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;}
+.card-title{font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:1px;color:var(--gray-4);}
+.card-action{font-size:12px;color:var(--accent);cursor:pointer;font-weight:500;text-decoration:none;background:none;border:none;padding:4px 8px;border-radius:6px;min-height:32px;display:flex;align-items:center;}
+.card-action:active{background:var(--accent-light);}
+
+/* PIPELINE */
+.pipeline-row{padding:10px 4px;border-bottom:1px solid var(--gray-6);}
+.pipeline-row:last-child{border-bottom:none;}
+.pip-top{display:flex;align-items:center;gap:8px;}
+/* PIPELINE STAGE BUTTONS */
+.pip-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0;}
+.pip-dot.pitched{background:var(--accent);}
+.pip-dot.awaiting-response{background:#E67E22;}
+.pip-dot.follow-up{background:var(--gold);}
+.pip-dot.in-convo{background:#9B59B6;}
+.stage-btn.s-awaiting{color:#E67E22;}
+.stage-btn.s-awaiting.active-stage{background:#FEF5E7;}
+.waiting-counter{font-size:11px;font-weight:600;color:#E67E22;background:#FEF5E7;border-radius:6px;padding:4px 10px;margin:4px 0 6px;display:inline-block;}
+.pip-dot.declined{background:var(--red);}
+.pip-dot.won{background:var(--green);}
+.pip-client{font-weight:600;font-size:13px;flex:1;}
+
+/* STAGE BUTTON ROW */
+.stage-btn-row{display:flex;gap:4px;margin-top:8px;padding-left:0;flex-wrap:nowrap;overflow-x:auto;}
+.stage-btn{
+  flex:1;min-width:0;padding:6px 4px;border-radius:8px;border:1.5px solid transparent;
+  cursor:pointer;font-family:'DM Sans',sans-serif;font-size:10px;font-weight:600;
+  text-align:center;transition:all 0.15s;white-space:nowrap;background:var(--gray-7);
+  color:var(--gray-4);
+}
+.stage-btn:active{transform:scale(0.97);}
+.stage-btn.active-stage{border-color:currentColor;}
+.stage-btn.s-pitched{color:var(--accent);}
+.stage-btn.s-pitched.active-stage{background:var(--accent-light);}
+.stage-btn.s-follow-up{color:var(--gold);}
+.stage-btn.s-follow-up.active-stage{background:var(--gold-light);}
+.stage-btn.s-in-convo{color:#9B59B6;}
+.stage-btn.s-in-convo.active-stage{background:#F5EEF8;}
+.stage-btn.s-declined{color:var(--red);}
+.stage-btn.s-declined.active-stage{background:var(--red-light);}
+.stage-btn.s-won{color:var(--green);}
+.stage-btn.s-won.active-stage{background:var(--green-light);}
+
+/* DECLINED SECTION */
+.declined-card{background:white;border-radius:var(--r-lg);border:1.5px solid var(--red-light);padding:16px;box-shadow:var(--shadow-sm);margin-bottom:12px;}
+.declined-row{padding:8px 0;border-bottom:1px solid var(--gray-6);display:flex;align-items:center;gap:8px;}
+.declined-row:last-child{border-bottom:none;}
+.declined-client{font-size:13px;font-weight:500;color:var(--gray-3);flex:1;}
+.declined-days{font-size:10px;color:var(--gray-5);flex-shrink:0;}
+.pip-remove{background:none;border:none;color:var(--gray-5);font-size:16px;cursor:pointer;padding:2px 4px;border-radius:4px;margin-left:auto;}
+.pip-remove:active{color:var(--red);}
+.pip-edit-area{display:none;margin-top:12px;border-top:1px solid var(--gray-6);padding-top:12px;}
+.pip-edit-area.open{display:block;}
+.pip-input{width:100%;padding:10px 12px;border:1px solid var(--gray-6);border-radius:8px;font-family:'DM Sans',sans-serif;font-size:14px;color:var(--black);background:white;outline:none;margin-bottom:8px;-webkit-appearance:none;}
+.pip-input:focus{border-color:var(--accent);}
+.pip-select{width:100%;padding:10px 12px;border:1px solid var(--gray-6);border-radius:8px;font-family:'DM Sans',sans-serif;font-size:14px;color:var(--black);background:white;outline:none;margin-bottom:10px;-webkit-appearance:none;appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%238E8E93' stroke-width='1.5' fill='none'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 12px center;}
+.pip-form-label{font-size:10px;color:var(--gray-4);font-weight:500;margin-bottom:4px;text-transform:uppercase;letter-spacing:0.5px;}
+.btn-full{width:100%;padding:12px;border-radius:10px;border:none;cursor:pointer;font-family:'DM Sans',sans-serif;font-size:14px;font-weight:600;background:var(--black);color:white;margin-bottom:6px;min-height:44px;}
+.btn-full:active{opacity:0.8;}
+.btn-full.secondary{background:var(--gray-6);color:var(--gray-3);}
+
+/* ACTIVE CLIENTS */
+.active-row{padding:12px 0;border-bottom:1px solid var(--gray-6);}
+.active-row:last-child{border-bottom:none;}
+.active-top{display:flex;align-items:center;gap:8px;}
+.active-dot{width:8px;height:8px;border-radius:50%;background:var(--green);flex-shrink:0;}
+.active-client{font-weight:600;font-size:13px;flex:1;}
+.active-week-badge{font-size:9px;color:var(--gray-4);background:var(--gray-7);border:1px solid var(--gray-6);padding:2px 6px;border-radius:8px;flex-shrink:0;}
+.active-action-row{margin-top:8px;display:flex;gap:6px;align-items:center;}
+.active-action-input{flex:1;padding:7px 10px;border:1px solid var(--gray-6);border-radius:8px;font-family:'DM Sans',sans-serif;font-size:12px;color:var(--black);background:var(--gray-7);outline:none;-webkit-appearance:none;}
+.active-action-input:focus{border-color:var(--accent);background:white;}
+.active-action-input::placeholder{color:var(--gray-5);}
+.active-save-btn{padding:7px 12px;border-radius:8px;border:none;background:var(--accent);color:white;font-size:12px;font-weight:600;cursor:pointer;font-family:'DM Sans',sans-serif;white-space:nowrap;}
+.active-saved-action{font-size:11px;color:var(--accent);margin-top:4px;padding-left:16px;font-weight:500;}
+
+/* WEEK SECTION DIVIDER */
+.week-divider{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:var(--accent);background:var(--accent-light);padding:5px 10px;border-radius:6px;margin:12px 0 6px;}
+
+/* SYNC BAR */
+.sync-bar{display:flex;align-items:center;justify-content:space-between;background:var(--accent-light);border-radius:8px;padding:8px 12px;margin-bottom:12px;}
+.sync-label{font-size:11px;color:var(--accent);font-weight:500;}
+.sync-time{font-size:10px;color:var(--gray-4);}
+.sync-btn{padding:5px 12px;border-radius:6px;border:none;background:var(--accent);color:white;font-size:11px;font-weight:600;cursor:pointer;font-family:'DM Sans',sans-serif;}
+.sync-btn:active{opacity:0.8;}
+.sync-btn:disabled{opacity:0.5;}
+
+/* CONTACTS */
+.contact-row{display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid var(--gray-6);}
+.contact-row:last-child{border-bottom:none;}
+.contact-avatar{width:36px;height:36px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:600;font-size:11px;flex-shrink:0;color:white;}
+.contact-info{flex:1;}
+.contact-name{font-size:13px;font-weight:500;}
+.contact-co{font-size:11px;color:var(--gray-4);}
+.contact-copy{padding:8px 12px;background:var(--accent-light);border-radius:8px;font-size:11px;color:var(--accent);font-weight:500;cursor:pointer;border:none;font-family:'DM Sans',sans-serif;white-space:nowrap;min-height:36px;}
+.contact-copy:active{background:var(--accent);color:white;}
+
+/* QUICK LINKS */
+.qlink{display:flex;align-items:center;gap:10px;padding:12px;border-radius:10px;border:1px solid var(--gray-6);background:var(--gray-7);text-decoration:none;color:var(--black);font-size:13px;font-weight:500;margin-bottom:8px;min-height:44px;}
+.qlink:last-child{margin-bottom:0;}
+.qlink:active{background:var(--accent-light);border-color:var(--accent);color:var(--accent);}
+.qlink-icon{font-size:16px;flex-shrink:0;}
+.qlink-arrow{margin-left:auto;color:var(--gray-5);font-size:12px;}
+.qlink.featured{background:var(--black);color:white;border-color:var(--black);font-size:14px;font-weight:600;}
+.qlink.featured .qlink-arrow{color:rgba(255,255,255,0.4);}
+.qlink.featured:active{background:var(--accent);border-color:var(--accent);}
+
+/* RATE CARD */
+.season-header{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:var(--accent);background:var(--accent-light);padding:6px 10px;border-radius:6px;margin:10px 0 6px;}
+.season-header:first-child{margin-top:0;}
+.rate-row{display:flex;align-items:flex-start;justify-content:space-between;padding:7px 0;border-bottom:1px solid var(--gray-6);}
+.rate-row:last-child{border-bottom:none;}
+.rate-left{flex:1;}
+.rate-show{font-size:12px;font-weight:500;}
+.rate-type{font-size:10px;color:var(--gray-4);}
+.rate-prices{text-align:right;flex-shrink:0;margin-left:8px;}
+.rate-val{font-family:'JetBrains Mono',monospace;font-size:12px;font-weight:500;color:var(--accent);}
+.rate-disc{font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--green);display:block;}
+.rate-card-top-note{background:var(--green-light);border:1px solid rgba(26,102,64,0.15);border-radius:8px;padding:8px 12px;font-size:11px;color:var(--green);margin-bottom:12px;font-weight:500;}
+
+/* RATE CARD TABLE */
+.rc-table{width:100%;border-collapse:collapse;font-size:12px;}
+.rc-table thead tr{border-bottom:2px solid var(--gray-6);}
+.rc-table th{padding:8px 6px;text-align:center;font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:0.8px;color:var(--gray-4);white-space:nowrap;}
+.rc-show-col{text-align:left !important;min-width:130px;}
+.rc-season-col{min-width:90px;}
+.rc-season-sub{font-size:9px;font-weight:400;letter-spacing:0;text-transform:none;display:block;color:var(--gray-5);}
+.rc-group-header td{background:var(--accent-light);color:var(--accent);font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.8px;padding:5px 6px;border-radius:4px;}
+.rc-show{padding:7px 6px;color:var(--gray-3);font-weight:500;border-bottom:1px solid var(--gray-6);}
+.rc-sub{font-size:9px;color:var(--gray-5);font-weight:400;margin-left:3px;}
+.rc-cell{padding:7px 6px;text-align:center;border-bottom:1px solid var(--gray-6);vertical-align:middle;}
+.rc-cell.rc-na{color:var(--gray-5);text-align:center;font-size:13px;}
+.rc-rate{font-family:'JetBrains Mono',monospace;font-size:11px;font-weight:500;color:var(--accent);display:block;}
+.rc-disc{font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--green);display:block;margin-top:1px;}
+
+/* SCRATCHPAD */
+.scratchpad{width:100%;min-height:160px;border:1px solid var(--gray-6);border-radius:10px;padding:12px;font-family:'DM Sans',sans-serif;font-size:14px;color:var(--black);resize:vertical;line-height:1.6;outline:none;background:var(--gray-7);-webkit-appearance:none;}
+.scratchpad:focus{border-color:var(--accent);background:white;}
+.scratchpad::placeholder{color:var(--gray-5);}
+
+/* COMPLIANCE */
+.compliance-row{display:flex;align-items:flex-start;gap:8px;padding:9px 0;border-bottom:1px solid var(--gray-6);}
+.compliance-row:last-child{border-bottom:none;}
+.comp-icon{font-size:14px;flex-shrink:0;margin-top:1px;}
+.comp-label{font-size:12px;color:var(--gray-3);flex:1;line-height:1.4;}
+.comp-val{font-size:10px;font-weight:600;flex-shrink:0;}
+.comp-val.ok{color:var(--green);}
+.comp-val.warn{color:var(--gold);}
+.comp-val.no{color:var(--red);}
+
+/* LEGEND */
+.legend{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:12px;}
+.legend-item{display:flex;align-items:center;gap:4px;font-size:10px;color:var(--gray-4);}
+.legend-dot{width:7px;height:7px;border-radius:50%;flex-shrink:0;}
+
+/* LOADING / EMPTY */
+.loading-row{padding:16px;text-align:center;font-size:12px;color:var(--gray-4);}
+.empty-state{padding:24px 16px;text-align:center;}
+.empty-state p{font-size:13px;color:var(--gray-4);margin-bottom:4px;}
+
+/* TOAST */
+.toast{position:fixed;bottom:calc(var(--nav-h) + 12px + env(safe-area-inset-bottom));left:50%;transform:translateX(-50%) translateY(10px);background:var(--black);color:white;padding:10px 18px;border-radius:20px;font-size:13px;font-weight:500;z-index:999;opacity:0;transition:all 0.25s;pointer-events:none;white-space:nowrap;}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(0);}
+
+/* DESKTOP */
+@media(min-width:768px){
+  body{padding-bottom:0;}
+  .bottom-nav{display:none;}
+  .section{display:block !important;}
+  .header{padding:0 32px;height:56px;}
+  .main{padding:24px 32px;}
+  .date-hero{font-size:38px;}
+  .stats-grid{grid-template-columns:repeat(4,1fr);gap:16px;margin-bottom:16px;}
+  .stat-card.full{grid-column:auto;}
+  .stat-value{font-size:28px;}
+  .desktop-2col{display:grid !important;grid-template-columns:2fr 1fr;gap:16px;}
+  .desktop-3col{display:grid !important;grid-template-columns:1fr 1fr 1fr;gap:16px;}
+  .toast{bottom:24px;}
+}
+</style>
+</head>
+<body>
+<div class="toast" id="toast"></div>
+
+<!-- HEADER -->
+<header class="header">
+  <div class="logo">SDPN <span>Command</span></div>
+  <div class="header-right">
+    <div class="clock" id="clock">--:--</div>
+  </div>
+</header>
+
+<!-- BOTTOM NAV -->
+<nav class="bottom-nav">
+  <button class="nav-btn active" onclick="showSection('home',this)"><span class="nav-icon">🏠</span>Home</button>
+  <button class="nav-btn" onclick="showSection('pipeline',this)"><span class="nav-icon">📈</span>Pitches</button>
+  <button class="nav-btn" onclick="showSection('active',this)"><span class="nav-icon">✅</span>Active</button>
+  <button class="nav-btn" onclick="showSection('ref',this)"><span class="nav-icon">📚</span>Rates</button>
+  <button class="nav-btn" onclick="showSection('rules',this)"><span class="nav-icon">⚖️</span>Compliance</button>
+</nav>
+
+<div class="main">
+
+<!-- ====== HOME ====== -->
+<div class="section active" id="section-home">
+  <div class="date-row">
+    <div class="date-hero">
+      <span class="weekday" id="weekday"></span>
+      <span id="dateStr"></span>
+    </div>
+    <span class="season-tag">2025–2026 · Playoffs</span>
+  </div>
+
+  <div class="stats-grid">
+    <div class="stat-card">
+      <div class="stat-label">Season Revenue (to Date)</div>
+      <div class="stat-value green" id="seasonTotalVal">$1,329,393</div>
+      <div class="stat-sub">CAD · SDPN Inc. only</div>
+      <div class="progress-wrap">
+        <div class="progress-track"><div class="progress-fill green" style="width:100%"></div></div>
+        <div class="progress-labels"><span id="seasonPctVal">108.5%</span><span id="seasonVsLabel">vs. last season</span></div>
+      </div>
+      <span class="stat-delta up" id="revenueUpdated"></span>
+    </div>
+    <div class="stat-card">
+      <div class="stat-label" id="lastMonthLabel">Last Month (March)</div>
+      <div class="stat-value accent" id="lastMonthVal">$237,825</div>
+      <div class="stat-sub" id="lastMonthPct">135.9% vs $175K target</div>
+      <div class="progress-wrap">
+        <div class="progress-track"><div class="progress-fill accent" style="width:100%"></div></div>
+        <div class="progress-labels"><span>Best month</span><span>of season</span></div>
+      </div>
+      <span class="stat-delta up">Season high</span>
+    </div>
+    <div class="stat-card">
+      <div class="stat-label" id="curMonthLabel">Current Month (April)</div>
+      <div class="stat-value gold" id="curMonthVal">—</div>
+      <div class="stat-sub" id="curMonthSub">Excl. Steve Dangle + Jesse Blake channels</div>
+      <div class="stat-edit-row" style="margin-top:8px;">
+        <input class="stat-edit-input" id="curMonthInput" type="text" placeholder="e.g. $213,002" />
+        <button class="stat-save-btn" onclick="saveCurMonth()">Save</button>
+      </div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-label">Invoices Last Month</div>
+      <div class="stat-value accent" id="invoiceCountVal">—</div>
+      <div class="stat-sub" id="invoiceAmtVal">Update from Invoice Tracker</div>
+      <div class="stat-edit-row" style="margin-top:8px;">
+        <input class="stat-edit-input" id="invoiceCountInput" type="text" placeholder="# invoices" style="max-width:72px;" />
+        <input class="stat-edit-input" id="invoiceAmtInput" type="text" placeholder="$ amount" />
+        <button class="stat-save-btn" onclick="saveInvoiceStats()">Save</button>
+      </div>
+    </div>
+  </div>
+  <div style="margin-bottom:12px;">
+    <button style="width:100%;padding:11px;border-radius:10px;border:none;cursor:pointer;font-family:'DM Sans',sans-serif;font-size:13px;font-weight:600;background:var(--accent);color:white;" onclick="pushStatsToSheet()">Push Stats to Team</button>
+    <p style="font-size:10px;color:var(--gray-4);text-align:center;margin-top:5px;">Shares your saved numbers with Steve, Adam and Jesse (requires live connection)</p>
+  </div>
+
+  <div class="card">
+    <div class="card-header">
+      <div class="card-title">Today's Notes</div>
+      <button class="card-action" onclick="clearNotes()">Clear</button>
+    </div>
+    <textarea class="scratchpad" id="scratchpad" placeholder="Free-form notes — auto-saved...&#10;&#10;e.g.&#10;- Follow up BK deck with Brent EOD&#10;- Shopify playoff Q2 offset confirmed&#10;- OTDA discrepancy resolved with Shalini"></textarea>
+    <div style="font-size:10px;color:var(--gray-5);margin-top:4px;text-align:right;">Saved in this browser</div>
+  </div>
+
+  <div class="card">
+    <div class="card-header"><div class="card-title">Quick Links</div></div>
+    <a class="qlink featured" href="file:///Users/kristinaweber/Downloads/SDPN_Skills_Launcher.html" target="_blank">
+      <span class="qlink-icon">⚡</span>SDPN Skills Launcher<span class="qlink-arrow">↗</span>
+    </a>
+    <a class="qlink" href="https://docs.google.com/spreadsheets/d/11hl4xi987SFvgELNpLzLH9OZxyNREuZW/edit" target="_blank">
+      <span class="qlink-icon">📒</span>Invoice Tracker (2025–2026)<span class="qlink-arrow">↗</span>
+    </a>
+    <a class="qlink" href="https://sdpn-ad-tracker.vercel.app" target="_blank">
+      <span class="qlink-icon">📡</span>Ad Tracker PWA<span class="qlink-arrow">↗</span>
+    </a>
+    <a class="qlink" href="https://health-products.canada.ca/lnhpd-bdpsnh/index-eng.jsp" target="_blank">
+      <span class="qlink-icon">🏥</span>Health Canada NPN Database<span class="qlink-arrow">↗</span>
+    </a>
+    <a class="qlink" href="https://www.bankofcanada.ca/rates/exchange/daily-exchange-rates/" target="_blank">
+      <span class="qlink-icon">💱</span>Bank of Canada FX Rates<span class="qlink-arrow">↗</span>
+    </a>
+    <a class="qlink" href="https://adstandards.ca" target="_blank">
+      <span class="qlink-icon">📜</span>Ad Standards Canada<span class="qlink-arrow">↗</span>
+    </a>
+    <a class="qlink" href="https://sdpn.ca/sales/" target="_blank">
+      <span class="qlink-icon">🌐</span>SDPN Sales Page<span class="qlink-arrow">↗</span>
+    </a>
+  </div>
+</div>
+
+<!-- ====== PIPELINE ====== -->
+<div class="section" id="section-pipeline">
+  <div class="legend" style="margin-bottom:12px;">
+    <div class="legend-item"><div class="legend-dot" style="background:var(--accent);"></div>Pitched</div>
+    <div class="legend-item"><div class="legend-dot" style="background:var(--gold);"></div>Follow Up</div>
+    <div class="legend-item"><div class="legend-dot" style="background:#9B59B6;"></div>In Conversation</div>
+    <div class="legend-item"><div class="legend-dot" style="background:var(--red);"></div>Declined</div>
+    <div class="legend-item"><div class="legend-dot" style="background:var(--green);"></div>Won</div>
+  </div>
+
+  <div class="card" style="margin-bottom:12px;">
+    <div class="card-header">
+      <div class="card-title">Active Pitches <span id="pitchCount" style="color:var(--accent);"></span></div>
+      <button class="card-action" onclick="togglePipelineEdit()">+ Add</button>
+    </div>
+    <div id="pipelineList"><div class="loading-row">Loading pitches...</div></div>
+    <div class="pip-edit-area" id="pipEditArea">
+      <div class="pip-form-label">Client Name</div>
+      <input class="pip-input" type="text" id="pipClient" placeholder="e.g. Burger King Canada" />
+      <div class="pip-form-label">Note</div>
+      <input class="pip-input" type="text" id="pipNote" placeholder="e.g. Playoff watchalong deck sent to Brent" />
+      <button class="btn-full" onclick="addPipelineRow()">Add to Pitches</button>
+      <button class="btn-full secondary" onclick="togglePipelineEdit()">Cancel</button>
+    </div>
+  </div>
+
+  <!-- RECENTLY DECLINED -->
+  <div id="declinedSection" style="display:none;">
+    <div class="declined-card">
+      <div class="card-header" style="margin-bottom:10px;">
+        <div class="card-title" style="color:var(--red);">Recently Declined <span id="declinedCount" style="color:var(--red);"></span></div>
+        <div style="font-size:10px;color:var(--gray-5);">Removed after 2 weeks</div>
+      </div>
+      <div id="declinedList"></div>
+    </div>
+  </div>
+
+  <!-- WINS -->
+  <div id="winsSection" style="display:none;">
+    <div style="background:var(--green-light);border-radius:var(--r-lg);border:1.5px solid rgba(26,102,64,0.2);padding:16px;box-shadow:var(--shadow-sm);">
+      <div class="card-header" style="margin-bottom:10px;">
+        <div class="card-title" style="color:var(--green);">Closed Won <span id="winsCount" style="color:var(--green);"></span></div>
+      </div>
+      <div id="winsList"></div>
+    </div>
+  </div>
+</div>
+
+<!-- ====== ACTIVE CLIENTS ====== -->
+<div class="section" id="section-active">
+
+  <div class="sync-bar">
+    <div>
+      <div class="sync-label">Live from Ad Tracker · Current week + 5 ahead</div>
+      <div class="sync-time" id="activeSyncTime">Loading...</div>
+    </div>
+    <button class="sync-btn" id="activeSyncBtn" onclick="loadActiveClients()">Refresh</button>
+  </div>
+
+  <div class="card" id="activeClientCard" style="margin-bottom:12px;">
+    <div class="card-header">
+      <div class="card-title">Active Clients <span id="activeCount" style="color:var(--green);"></span></div>
+    </div>
+    <div id="activeClientList"><div class="loading-row">Loading from Ad Tracker...</div></div>
+  </div>
+
+  <div class="card">
+    <div class="card-header"><div class="card-title">Key Contacts</div></div>
+    <div class="contact-row">
+      <div class="contact-avatar" style="background:#1B4B8C;">BJ</div>
+      <div class="contact-info">
+        <div class="contact-name">Brent Jones</div>
+        <div class="contact-co">PHD / OMC · Tim Hortons, Firehouse, Popeyes, BK</div>
+      </div>
+      <button class="contact-copy" onclick="copyEmail('brent.jones@omc.com')">Copy</button>
+    </div>
+    <div class="contact-row">
+      <div class="contact-avatar" style="background:#C0392B;">SG</div>
+      <div class="contact-info">
+        <div class="contact-name">Shalini Gupta</div>
+        <div class="contact-co">The Showroom Team · OTDA</div>
+      </div>
+      <button class="contact-copy" onclick="copyEmail('shalini.gupta@showroomteam.com')">Copy</button>
+    </div>
+    <div class="contact-row">
+      <div class="contact-avatar" style="background:#1A6640;">TD</div>
+      <div class="contact-info">
+        <div class="contact-name">Trevor Dawes</div>
+        <div class="contact-co">Heineken Canada · Direct brand</div>
+      </div>
+      <button class="contact-copy" onclick="copyEmail('trevor.dawes@heineken.com')">Copy</button>
+    </div>
+    <div class="contact-row">
+      <div class="contact-avatar" style="background:#B8860B;">AS</div>
+      <div class="contact-info">
+        <div class="contact-name">Anthony Scattolon</div>
+        <div class="contact-co">The Showroom Team · OTDA</div>
+      </div>
+      <button class="contact-copy" onclick="copyEmail('anthony@showroomteam.com')">Copy</button>
+    </div>
+  </div>
+</div>
+
+<!-- ====== RATE CARD ====== -->
+<div class="section" id="section-ref">
+  <div class="card">
+    <div class="card-header"><div class="card-title">Rate Card (CAD)</div></div>
+    <div class="rate-card-top-note">Standard 20% partner discount shown in green. — = not active that season.</div>
+
+    <div style="overflow-x:auto;-webkit-overflow-scrolling:touch;">
+      <table class="rc-table">
+        <thead>
+          <tr>
+            <th class="rc-show-col">Show / Format</th>
+            <th class="rc-season-col">Fall<br><span class="rc-season-sub">Sep–Dec</span></th>
+            <th class="rc-season-col">Winter<br><span class="rc-season-sub">Jan–Mar</span></th>
+            <th class="rc-season-col">Spring<br><span class="rc-season-sub">Apr–Jun</span></th>
+            <th class="rc-season-col">Summer<br><span class="rc-season-sub">Jul–Aug</span></th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr class="rc-group-header"><td colspan="5">SDP · Adam Wylde leads all reads</td></tr>
+          <tr>
+            <td class="rc-show">Host Read <span class="rc-sub">:60</span></td>
+            <td class="rc-cell"><span class="rc-rate">$3,669</span><span class="rc-disc">$2,935</span></td>
+            <td class="rc-cell"><span class="rc-rate">$3,669</span><span class="rc-disc">$2,935</span></td>
+            <td class="rc-cell"><span class="rc-rate">$3,669</span><span class="rc-disc">$2,935</span></td>
+            <td class="rc-cell"><span class="rc-rate">$2,885</span><span class="rc-disc">$2,308</span></td>
+          </tr>
+          <tr>
+            <td class="rc-show">Free Agency Day <span class="rc-sub">Jul 1</span></td>
+            <td class="rc-cell rc-na">—</td>
+            <td class="rc-cell rc-na">—</td>
+            <td class="rc-cell rc-na">—</td>
+            <td class="rc-cell"><span class="rc-rate">$63,058</span><span class="rc-disc">$50,446</span></td>
+          </tr>
+          <tr>
+            <td class="rc-show">Draft Day <span class="rc-sub">Jun 27–28</span></td>
+            <td class="rc-cell rc-na">—</td>
+            <td class="rc-cell rc-na">—</td>
+            <td class="rc-cell rc-na">—</td>
+            <td class="rc-cell"><span class="rc-rate">$12,912</span><span class="rc-disc">$10,330</span></td>
+          </tr>
+          <tr>
+            <td class="rc-show">RON Long Form <span class="rc-sub">Mon–Sun</span></td>
+            <td class="rc-cell rc-na">—</td>
+            <td class="rc-cell rc-na">—</td>
+            <td class="rc-cell rc-na">—</td>
+            <td class="rc-cell"><span class="rc-rate">$8,750</span><span class="rc-disc">$7,000</span></td>
+          </tr>
+
+          <tr class="rc-group-header"><td colspan="5">LFR · Steve Dangle only</td></tr>
+          <tr>
+            <td class="rc-show">Host Read <span class="rc-sub">:60</span></td>
+            <td class="rc-cell"><span class="rc-rate">$5,306</span><span class="rc-disc">$4,245</span></td>
+            <td class="rc-cell"><span class="rc-rate">$5,306</span><span class="rc-disc">$4,245</span></td>
+            <td class="rc-cell"><span class="rc-rate">$5,306</span><span class="rc-disc">$4,245</span></td>
+            <td class="rc-cell rc-na">—</td>
+          </tr>
+          <tr>
+            <td class="rc-show">Cup Check <span class="rc-sub">post game</span></td>
+            <td class="rc-cell rc-na">—</td>
+            <td class="rc-cell rc-na">—</td>
+            <td class="rc-cell rc-na">—</td>
+            <td class="rc-cell"><span class="rc-rate">$3,056</span><span class="rc-disc">$2,445</span></td>
+          </tr>
+
+          <tr class="rc-group-header"><td colspan="5">Watchalongs · Playoffs only</td></tr>
+          <tr>
+            <td class="rc-show">Round 1 <span class="rc-sub">per stream</span></td>
+            <td class="rc-cell rc-na">—</td>
+            <td class="rc-cell rc-na">—</td>
+            <td class="rc-cell"><span class="rc-rate">$2,632</span><span class="rc-disc">$2,106</span></td>
+            <td class="rc-cell rc-na">—</td>
+          </tr>
+          <tr>
+            <td class="rc-show">Round 2 <span class="rc-sub">per stream</span></td>
+            <td class="rc-cell rc-na">—</td>
+            <td class="rc-cell rc-na">—</td>
+            <td class="rc-cell"><span class="rc-rate">$5,824</span><span class="rc-disc">$4,659</span></td>
+            <td class="rc-cell rc-na">—</td>
+          </tr>
+          <tr>
+            <td class="rc-show">R3 / Finals <span class="rc-sub">per stream</span></td>
+            <td class="rc-cell rc-na">—</td>
+            <td class="rc-cell rc-na">—</td>
+            <td class="rc-cell"><span class="rc-rate">$4,378</span><span class="rc-disc">$3,502</span></td>
+            <td class="rc-cell"><span class="rc-rate">$4,077</span><span class="rc-disc">$3,262</span></td>
+          </tr>
+
+          <tr class="rc-group-header"><td colspan="5">Other Shows</td></tr>
+          <tr>
+            <td class="rc-show">Nailing The Apex <span class="rc-sub">F1 · :60</span></td>
+            <td class="rc-cell"><span class="rc-rate">$1,200</span><span class="rc-disc">$960</span></td>
+            <td class="rc-cell rc-na">—</td>
+            <td class="rc-cell"><span class="rc-rate">$1,200</span><span class="rc-disc">$960</span></td>
+            <td class="rc-cell"><span class="rc-rate">$135</span><span class="rc-disc">$108</span></td>
+          </tr>
+          <tr>
+            <td class="rc-show">F1 Track Walkthroughs <span class="rc-sub">Tim Hauraney</span></td>
+            <td class="rc-cell rc-na">—</td>
+            <td class="rc-cell rc-na">—</td>
+            <td class="rc-cell rc-na">—</td>
+            <td class="rc-cell"><span class="rc-rate">$69</span><span class="rc-disc">$55</span></td>
+          </tr>
+          <tr>
+            <td class="rc-show">CJ Show <span class="rc-sub">host read</span></td>
+            <td class="rc-cell"><span class="rc-rate">$1,250</span><span class="rc-disc">$1,000</span></td>
+            <td class="rc-cell"><span class="rc-rate">$1,250</span><span class="rc-disc">$1,000</span></td>
+            <td class="rc-cell rc-na">—</td>
+            <td class="rc-cell"><span class="rc-rate">$770</span><span class="rc-disc">$616</span></td>
+          </tr>
+          <tr>
+            <td class="rc-show">Jesse Blake <span class="rc-sub">host read</span></td>
+            <td class="rc-cell"><span class="rc-rate">$880</span><span class="rc-disc">$704</span></td>
+            <td class="rc-cell"><span class="rc-rate">$880</span><span class="rc-disc">$704</span></td>
+            <td class="rc-cell rc-na">—</td>
+            <td class="rc-cell"><span class="rc-rate">$334</span><span class="rc-disc">$267</span></td>
+          </tr>
+          <tr>
+            <td class="rc-show">Agent Provocateur <span class="rc-sub">host read</span></td>
+            <td class="rc-cell rc-na">—</td>
+            <td class="rc-cell rc-na">—</td>
+            <td class="rc-cell rc-na">—</td>
+            <td class="rc-cell"><span class="rc-rate">$534</span><span class="rc-disc">$427</span></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div style="display:flex;gap:12px;margin-top:10px;flex-wrap:wrap;">
+      <div style="font-size:10px;color:var(--gray-4);">
+        <span style="font-family:'JetBrains Mono',monospace;color:var(--accent);font-size:11px;">$X,XXX</span> = rate card
+      </div>
+      <div style="font-size:10px;color:var(--gray-4);">
+        <span style="font-family:'JetBrains Mono',monospace;color:var(--green);font-size:11px;">$X,XXX</span> = 20% partner discount
+      </div>
+    </div>
+
+    <div style="margin-top:12px;padding:10px;background:var(--gold-light);border-radius:8px;font-size:11px;color:var(--gold);border:1px solid rgba(184,134,11,0.15);">
+      <strong>New client discount: 30%</strong> — always ask before building any proposal. CAD only by default.
+    </div>
+  </div>
+</div>
+
+<!-- ====== RULES ====== -->
+<div class="section" id="section-rules">
+  <div class="card">
+    <div class="card-header"><div class="card-title">Compliance Checklist</div></div>
+    <div class="compliance-row"><span class="comp-icon">🏥</span><span class="comp-label">Supplements: NPN from Health Canada required before any green light.</span><span class="comp-val warn">Check</span></div>
+    <div class="compliance-row"><span class="comp-icon">🎰</span><span class="comp-label">Gambling: AGCO registration required. Check before proceeding.</span><span class="comp-val warn">Check</span></div>
+    <div class="compliance-row"><span class="comp-icon">🍁</span><span class="comp-label">Cannabis: Hard no, all formats, all shows.</span><span class="comp-val no">No</span></div>
+    <div class="compliance-row"><span class="comp-icon">🚬</span><span class="comp-label">Vaping / e-cigarettes: Hard no.</span><span class="comp-val no">No</span></div>
+    <div class="compliance-row"><span class="comp-icon">💊</span><span class="comp-label">Prescription drugs: Hard no.</span><span class="comp-val no">No</span></div>
+    <div class="compliance-row"><span class="comp-icon">🌍</span><span class="comp-label">US-only brands: Do not proceed for Canadian audience without geo-targeting plan.</span><span class="comp-val warn">Check</span></div>
+    <div style="margin-top:10px;padding:10px;background:var(--red-light);border-radius:8px;font-size:11px;color:var(--red);">
+      <strong>Avoid:</strong> Kristine Sherliker at Wavemaker. Route to planning/buying level only.
+    </div>
+  </div>
+  <p style="text-align:center;font-size:10px;color:var(--gray-5);padding:8px 0 4px;">Kristina Weber · VP, Sales · SDPN Inc. · 647.230.9104 · kristinaweber@sdpn.ca</p>
+</div>
+
+</div><!-- /main -->
+
+<script>
+// ===== CONFIG =====
+const FEED_ENDPOINT = "https://script.google.com/macros/s/AKfycbwPnexAEaAW5XcXFOQpQvV-BUyAlJvsXbHtnwEDzkSsIhbHCQ0fXRnrjd7B6zqxwPafyQ/exec";
+
+// ===== CLOCK + DATE =====
+function updateClock() {
+  const now = new Date();
+  document.getElementById('clock').textContent =
+    now.toLocaleTimeString('en-CA', {hour:'2-digit', minute:'2-digit', hour12:true});
+  const days = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
+  const months = ['January','February','March','April','May','June','July',
+                  'August','September','October','November','December'];
+  document.getElementById('weekday').textContent = days[now.getDay()];
+  document.getElementById('dateStr').textContent =
+    months[now.getMonth()] + ' ' + now.getDate() + ', ' + now.getFullYear();
+}
+updateClock();
+setInterval(updateClock, 30000);
+
+// ===== NAV =====
+function showSection(id, btn) {
+  document.querySelectorAll('.section').forEach(function(s) {
+    s.classList.remove('active');
+    s.style.display = '';
+  });
+  document.querySelectorAll('.nav-btn').forEach(function(b) { b.classList.remove('active'); });
+  var target = document.getElementById('section-' + id);
+  if (target) { target.classList.add('active'); target.style.display = 'block'; }
+  if (btn) btn.classList.add('active');
+  window.scrollTo(0, 0);
+  if (id === 'active') loadActiveClients();
+}
+
+// ===== TOAST =====
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 2400);
+}
+
+// ===== COPY EMAIL =====
+function copyEmail(email) {
+  navigator.clipboard.writeText(email).then(() => showToast('Copied: ' + email));
+}
+
+// ===== SCRATCHPAD (local notes - personal to each user) =====
+const pad = document.getElementById('scratchpad');
+pad.value = localStorage.getItem('sdpn_notes') || '';
+pad.addEventListener('input', () => localStorage.setItem('sdpn_notes', pad.value));
+function clearNotes() {
+  if (confirm('Clear today\'s notes?')) { pad.value = ''; localStorage.removeItem('sdpn_notes'); }
+}
+
+// ===== SHARED DATA STATE =====
+// All data loads from the Apps Script endpoint — one fetch, three feeds
+window._allData = null;
+
+// ===== CLIENT NAME ALIASES =====
+const CLIENT_ALIASES = {
+  "betmgm 2":"BetMGM","betmgm big story":"BetMGM","moosehead 2":"Moosehead Lager",
+  "moosehead":"Moosehead Lager","cotda 2":"COTDA","cotda":"COTDA (Central OTDA)",
+  "notda":"NOTDA","swotda 2":"SWOTDA","swotda":"SWOTDA",
+  "nta - betway":"Betway (NTA)","nta - betway x 2":"Betway (NTA)",
+  "ultra h-up":"Ultra","betterhelp":"BetterHelp","harry's":"Harry's",
+  "aura frames":"Aura Frames","cheers health":"Cheers Health","chubbies":"Chubbies",
+  "blue chew":"BlueChew","shady rays":"Shady Rays","shopify":"Shopify",
+  "tempo":"Tempo","saily":"Saily","betmgm":"BetMGM"
+};
+function cleanName(raw) {
+  const lower = (raw||'').toLowerCase().trim();
+  return CLIENT_ALIASES[lower] || (raw||'').trim();
+}
+
+// ===== FALLBACK DATA — shows when endpoint unreachable (e.g. file:// protocol) =====
+const FALLBACK_PIPELINE = [
+  {client:'Burger King',note:'Better Than Ever playoff deck sent to Brent',status:'deck-sent'},
+  {client:'Heineken',note:'NTA proposal sent to Trevor Dawes',status:'deck-sent'},
+  {client:'Popeyes Chicken',note:'Deck sent via Brent Jones at OMC',status:'deck-sent'},
+  {client:'Second String',note:'Warm lead - Steve received wallet as gift',status:'in-convo'},
+  {client:'Pirelli',note:'NTA pitch sent',status:'deck-sent'},
+  {client:'OTDA',note:'Q1-Q2 pacing update sent to Shalini',status:'active'},
+  {client:'Tim Hortons Camp Day 2026',note:'',status:'deck-sent'},
+  {client:'Tim Hortons Free Agency',note:'',status:'deck-sent'},
+  {client:'Tim Hortons Hockey Challenge',note:'',status:'deck-sent'},
+  {client:'Shopify',note:'IO dispute resolved - re-rate model accepted',status:'in-convo'},
+  {client:'Indeed',note:'',status:'deck-sent'},
+  {client:'Uber Eats',note:'',status:'deck-sent'},
+  {client:'Ekster',note:'',status:'deck-sent'},
+  {client:'Crown Royal',note:'',status:'deck-sent'},
+  {client:'Boston Pizza',note:'',status:'deck-sent'},
+  {client:'Circa',note:'',status:'deck-sent'},
+  {client:'Factor',note:'',status:'deck-sent'},
+  {client:'KFC (Kyle Connor)',note:'',status:'deck-sent'},
+  {client:'Allwyn',note:'',status:'deck-sent'},
+  {client:'Aura Frames',note:'',status:'deck-sent'},
+  {client:'Body Armor',note:'',status:'deck-sent'},
+  {client:'CHL',note:'',status:'deck-sent'},
+  {client:'Cohere',note:'',status:'deck-sent'},
+  {client:'eBay',note:'',status:'deck-sent'},
+  {client:'Elite Sports Tours',note:'',status:'deck-sent'},
+  {client:'Energy Bird',note:'',status:'deck-sent'},
+  {client:'Fantasy Roundup',note:'',status:'deck-sent'},
+  {client:'Fisherman\'s Friend',note:'',status:'deck-sent'},
+  {client:'Fitbod',note:'',status:'deck-sent'},
+  {client:'Fixated',note:'',status:'deck-sent'},
+  {client:'Kalshi',note:'',status:'deck-sent'},
+  {client:'Kickoff',note:'',status:'deck-sent'},
+  {client:'Kiwi Biosciences',note:'',status:'deck-sent'},
+  {client:'Kruger',note:'',status:'deck-sent'},
+  {client:'Muskoka Brewery',note:'',status:'deck-sent'},
+  {client:'Panago',note:'',status:'deck-sent'},
+  {client:'Pizza Pizza',note:'',status:'deck-sent'},
+  {client:'Pronto Construction',note:'',status:'deck-sent'},
+  {client:'TEMU',note:'',status:'deck-sent'},
+  {client:'TekSavvy',note:'',status:'deck-sent'},
+  {client:'The Athletic',note:'',status:'deck-sent'},
+  {client:'TMU',note:'',status:'deck-sent'},
+  {client:'Wick Hockey',note:'',status:'deck-sent'},
+  {client:'AirBNB CJShow',note:'',status:'deck-sent'},
+  {client:'Beer X (D&S)',note:'',status:'deck-sent'},
+  {client:'Big Mama\'s and Papa\'s Pizzeria',note:'',status:'deck-sent'},
+  {client:'CAMH',note:'',status:'deck-sent'},
+  {client:'Draft Picks Bar',note:'',status:'deck-sent'},
+  {client:'Supremacy WW3',note:'',status:'deck-sent'},
+];
+
+const FALLBACK_ACTIVE = {
+  allActive: ['Aura Frames','BetMGM','BetterHelp','COTDA','Cheers Health','Chubbies',
+              'Harry\'s','Moosehead Lager','NOTDA','SWOTDA','Saily','Shady Rays',
+              'Shopify','Tempo','Ultra'],
+  thisWeek:  ['BetMGM','COTDA','Moosehead Lager','Ultra','Saily'],
+  byWeek: {
+    'This Week':      ['BetMGM','COTDA','Moosehead Lager','Ultra','Saily'],
+    'Week 2 (Apr 20)':['BetMGM','COTDA','Shopify','Aura Frames','Moosehead Lager','Cheers Health','Chubbies'],
+    'Week 3 (Apr 27)':['BetMGM','COTDA','Tempo','Aura Frames','Moosehead Lager','Cheers Health'],
+    'Week 4 (May 4)': ['BetMGM','COTDA','Harry\'s','Aura Frames','Moosehead Lager'],
+    'Week 5 (May 11)':['BetMGM','COTDA','Moosehead Lager'],
+    'Week 6 (May 18)':['BetMGM','Shopify','COTDA','Moosehead Lager'],
+  },
+  updated: 'Fallback data - last synced Apr 16, 2026'
+};
+
+// ===== MAIN LOAD =====
+async function loadAllData(showLoading) {
+  if (showLoading) {
+    document.getElementById('activeClientList').innerHTML = '<div class="loading-row">Loading from Ad Tracker...</div>';
+    document.getElementById('pipelineList').innerHTML     = '<div class="loading-row">Loading pitches...</div>';
+  }
+
+  if (window.location.protocol === 'file:') {
+    applyFallback();
+    return;
+  }
+
+  try {
+    var timeoutId;
+    var timeoutPromise = new Promise(function(_, reject) {
+      timeoutId = setTimeout(function() { reject(new Error('timeout')); }, 8000);
+    });
+    var fetchPromise = fetch(FEED_ENDPOINT);
+    const resp = await Promise.race([fetchPromise, timeoutPromise]);
+    clearTimeout(timeoutId);
+    const data = await resp.json();
+    if (data.error) throw new Error(data.error);
+
+    // MERGE pipeline: preserve existing stages, only add brand new pitches
+    const merged = mergePipeline(data.pipeline || []);
+    data.pipeline = merged;
+
+    window._allData = data;
+    applyRevenueFeed(data.revenue);
+    renderPipeline(merged);
+    renderActiveClients(data.activeFeed);
+    const now = new Date();
+    document.getElementById('activeSyncTime').textContent = 'Live · Last refreshed: ' +
+      now.toLocaleTimeString('en-CA', {hour:'2-digit', minute:'2-digit', hour12:true});
+  } catch (err) {
+    console.warn('Live feed unavailable:', err.message);
+    applyFallback();
+  }
+  const btn = document.getElementById('activeSyncBtn');
+  if (btn) { btn.disabled = false; btn.textContent = 'Refresh'; }
+}
+
+// Merge incoming pipeline from sheet with any locally saved stages.
+// Rule: existing clients keep their saved stage. New clients get added as 'pitched'.
+// Clients removed from Gmail Pitched folder are NOT removed here — manual only.
+function mergePipeline(incoming) {
+  var saved = {};
+  try {
+    var raw = localStorage.getItem('sdpn_stages');
+    if (raw) saved = JSON.parse(raw);
+  } catch(e) {}
+
+  // Start from incoming sheet data (which already has saved stages from previous sessions)
+  // Apply any locally saved overrides on top (catches offline stage changes)
+  var merged = incoming.map(function(p) {
+    var local = saved[p.client];
+    if (local && local.status) {
+      return {
+        client: p.client,
+        note: p.note || '',
+        status: local.status,
+        declinedAt: local.declinedAt || p.declinedAt || null,
+        awaitingAt: local.awaitingAt || p.awaitingAt || null,
+        declineReason: local.declineReason || p.declineReason || ''
+      };
+    }
+    return p;
+  });
+
+  // Add any new pitches from Gmail that aren't already in the sheet pipeline
+  var existingClients = merged.map(function(p) { return p.client.toLowerCase(); });
+  FALLBACK_PIPELINE.forEach(function(fp) {
+    if (existingClients.indexOf(fp.client.toLowerCase()) === -1) {
+      merged.push({client: fp.client, note: fp.note || '', status: 'pitched', declinedAt: null, declineReason: ''});
+    }
+  });
+
+  return merged;
+}
+
+function applyFallback() {
+  var savedStages = localStorage.getItem('sdpn_stages');
+  var pipeline = FALLBACK_PIPELINE.map(function(p) {
+    return {client:p.client, note:p.note, status:p.status};
+  });
+  if (savedStages) {
+    try {
+      var stages = JSON.parse(savedStages);
+      pipeline = pipeline.map(function(p) {
+        return {client:p.client, note:p.note, status:stages[p.client] || p.status};
+      });
+    } catch(e) {}
+  }
+  window._allData = {pipeline:pipeline, activeFeed:FALLBACK_ACTIVE, revenue:{}};
+  renderPipeline(pipeline);
+  renderActiveClients(FALLBACK_ACTIVE);
+  var timeEl = document.getElementById('activeSyncTime');
+  if (timeEl) timeEl.textContent = 'Saved data · Host online for live sync';
+  var btn = document.getElementById('activeSyncBtn');
+  if (btn) { btn.disabled = false; btn.textContent = 'Refresh'; }
+}
+
+function loadActiveClients() {
+  const btn = document.getElementById('activeSyncBtn');
+  if (btn) { btn.disabled = true; btn.textContent = 'Loading...'; }
+  loadAllData(true);
+}
+
+// ===== REVENUE FEED — applies shared stats from sheet =====
+function applyRevenueFeed(rev) {
+  if (!rev) return;
+  if (rev.season_total)    { document.getElementById('seasonTotalVal').textContent = rev.season_total; }
+  if (rev.season_pct)      { document.getElementById('seasonPctVal').textContent   = rev.season_pct; }
+  if (rev.season_vs_label) { document.getElementById('seasonVsLabel').textContent  = rev.season_vs_label; }
+  if (rev.last_month_name) { document.getElementById('lastMonthLabel').textContent = 'Last Month (' + rev.last_month_name + ')'; }
+  if (rev.last_month_val)  { document.getElementById('lastMonthVal').textContent   = rev.last_month_val; }
+  if (rev.last_month_pct)  { document.getElementById('lastMonthPct').textContent   = rev.last_month_pct + ' vs $175K target'; }
+  if (rev.cur_month_name)  { document.getElementById('curMonthLabel').textContent  = 'Current Month (' + rev.cur_month_name + ')'; }
+  if (rev.cur_month_val)   { document.getElementById('curMonthVal').textContent    = rev.cur_month_val || '—'; }
+  if (rev.cur_month_note)  { document.getElementById('curMonthSub').textContent    = rev.cur_month_note; }
+  if (rev.invoice_count)   { document.getElementById('invoiceCountVal').textContent = rev.invoice_count; }
+  if (rev.invoice_amount)  { document.getElementById('invoiceAmtVal').textContent   = rev.invoice_amount ? rev.invoice_amount + ' invoiced' : 'Update from Invoice Tracker'; }
+  if (rev.updated)         { document.getElementById('revenueUpdated').textContent  = 'Updated: ' + rev.updated; }
+}
+
+// ===== STAT BOXES — save locally immediately, display in bold like first two cards =====
+(function restoreLocalStats() {
+  const cm = localStorage.getItem('sdpn_curmonth');
+  if (cm) { try { const d = JSON.parse(cm); if (d.val) { document.getElementById('curMonthVal').textContent = d.val; if (d.sub) document.getElementById('curMonthSub').textContent = d.sub; } } catch(e){} }
+  const inv = localStorage.getItem('sdpn_invoices');
+  if (inv) { try { const d = JSON.parse(inv); if (d.count) document.getElementById('invoiceCountVal').textContent = d.count; if (d.amt) document.getElementById('invoiceAmtVal').textContent = d.amt + ' invoiced'; } catch(e){} }
+})();
+
+function saveCurMonth() {
+  const val = document.getElementById('curMonthInput').value.trim();
+  if (!val) { showToast('Enter a value first'); return; }
+  document.getElementById('curMonthVal').textContent = val;
+  document.getElementById('curMonthSub').textContent = 'SDPN Inc. only';
+  localStorage.setItem('sdpn_curmonth', JSON.stringify({val, sub:'SDPN Inc. only'}));
+  document.getElementById('curMonthInput').value = '';
+  showToast('Current month saved');
+}
+
+function saveInvoiceStats() {
+  const count = document.getElementById('invoiceCountInput').value.trim();
+  const amt   = document.getElementById('invoiceAmtInput').value.trim();
+  if (!count && !amt) { showToast('Enter a value first'); return; }
+  if (count) document.getElementById('invoiceCountVal').textContent = count;
+  if (amt)   document.getElementById('invoiceAmtVal').textContent = amt + ' invoiced';
+  localStorage.setItem('sdpn_invoices', JSON.stringify({count, amt}));
+  document.getElementById('invoiceCountInput').value = '';
+  document.getElementById('invoiceAmtInput').value   = '';
+  showToast('Invoice stats saved');
+}
+
+function pushStatsToSheet() {
+  const rev = {};
+  if (window._allData && window._allData.revenue) Object.assign(rev, window._allData.revenue);
+  const cm  = localStorage.getItem('sdpn_curmonth');
+  const inv = localStorage.getItem('sdpn_invoices');
+  if (cm)  { try { const d = JSON.parse(cm);  if (d.val)   rev.cur_month_val  = d.val;   } catch(e){} }
+  if (inv) { try { const d = JSON.parse(inv); if (d.count) rev.invoice_count  = d.count; if (d.amt) rev.invoice_amount = d.amt; } catch(e){} }
+  fetch(FEED_ENDPOINT, {method:'POST', body:JSON.stringify({action:'save_revenue', revenue:rev})})
+    .then(() => showToast('Stats pushed to team'))
+    .catch(() => showToast('Push failed - no live connection'));
+}
+
+// ===== ACTIVE CLIENTS — clean list =====
+function renderActiveClients(activeFeed) {
+  if (!activeFeed) return;
+  var allActive = activeFeed.allActive || [];
+  var byWeek    = activeFeed.byWeek   || {};
+  var listEl    = document.getElementById('activeClientList');
+  var countEl   = document.getElementById('activeCount');
+
+  var dedupedAll = [];
+  var seen = {};
+  allActive.forEach(function(c) {
+    var n = cleanName(c);
+    if (!seen[n]) { seen[n] = true; dedupedAll.push(n); }
+  });
+  dedupedAll.sort();
+  countEl.textContent = '(' + dedupedAll.length + ')';
+
+  if (!dedupedAll.length) {
+    listEl.innerHTML = '<div class="loading-row">No active clients in current window.</div>';
+    return;
+  }
+
+  // Build week lookup
+  var clientWeeks = {};
+  Object.keys(byWeek).forEach(function(label) {
+    byWeek[label].forEach(function(c) {
+      var f = cleanName(c);
+      if (!clientWeeks[f]) clientWeeks[f] = [];
+      if (clientWeeks[f].indexOf(label) === -1) clientWeeks[f].push(label);
+    });
+  });
+
+  listEl.innerHTML = '';
+  dedupedAll.forEach(function(client) {
+    var weeks      = clientWeeks[client] || [];
+    var weekBadges = weeks.map(function(w) { return '<span class="active-week-badge">' + w + '</span>'; }).join(' ');
+    var div        = document.createElement('div');
+    div.className  = 'active-row';
+    div.innerHTML  =
+      '<div class="active-top">' +
+        '<span class="active-dot"></span>' +
+        '<span class="active-client">' + client + '</span>' +
+        '<span style="display:flex;gap:4px;flex-wrap:wrap;">' + weekBadges + '</span>' +
+      '</div>';
+    listEl.appendChild(div);
+  });
+}
+
+// ===== PIPELINE — 5 stage button system =====
+var STAGES = [
+  {key:'pitched',           label:'Pitched',          cls:'s-pitched'},
+  {key:'follow-up',         label:'Follow Up',         cls:'s-follow-up'},
+  {key:'awaiting-response', label:'Awaiting Response', cls:'s-awaiting'},
+  {key:'in-convo',          label:'In Convo',          cls:'s-in-convo'},
+  {key:'declined',          label:'Declined',          cls:'s-declined'},
+  {key:'won',               label:'Won',               cls:'s-won'}
+];
+
+function renderPipeline(pipelineData) {
+  var data    = pipelineData || [];
+  var el      = document.getElementById('pipelineList');
+  var countEl = document.getElementById('pitchCount');
+  var now     = Date.now();
+  var TWO_WEEKS = 14 * 24 * 60 * 60 * 1000;
+
+  var active   = data.filter(function(r) { return r.status !== 'declined' && r.status !== 'won'; });
+  var declined = data.filter(function(r) {
+    if (r.status !== 'declined') return false;
+    return (now - (r.declinedAt || now)) < TWO_WEEKS;
+  });
+  var won = data.filter(function(r) { return r.status === 'won'; });
+
+  // Active pitches
+  countEl.textContent = '(' + active.length + ')';
+  el.innerHTML = '';
+  if (!active.length) {
+    el.innerHTML = '<div class="loading-row">No active pitches. Add one below.</div>';
+  } else {
+    active.forEach(function(row) {
+      var realIdx = data.indexOf(row);
+      var dotCls  = row.status === 'follow-up'         ? 'follow-up'
+                  : row.status === 'in-convo'           ? 'in-convo'
+                  : row.status === 'awaiting-response'  ? 'awaiting-response'
+                  : 'pitched';
+      var btns = STAGES.map(function(s) {
+        var isActive = row.status === s.key ? ' active-stage' : '';
+        return '<button class="stage-btn ' + s.cls + isActive + '" onclick="setStage(' + realIdx + ',\'' + s.key + '\')">' + s.label + '</button>';
+      }).join('');
+
+      // Waiting counter — shown when status is awaiting-response
+      var counterHtml = '';
+      if (row.status === 'awaiting-response' && row.awaitingAt) {
+        var daysWaiting = Math.floor((now - row.awaitingAt) / (24 * 60 * 60 * 1000));
+        var dayLabel = daysWaiting === 0 ? 'Waiting since today'
+                     : daysWaiting === 1 ? 'Waiting 1 day'
+                     : 'Waiting ' + daysWaiting + ' days';
+        counterHtml = '<div class="waiting-counter">⏳ ' + dayLabel + '</div>';
+      }
+
+      var div = document.createElement('div');
+      div.className = 'pipeline-row';
+      div.innerHTML =
+        '<div class="pip-top">' +
+          '<span class="pip-dot ' + dotCls + '"></span>' +
+          '<span class="pip-client">' + row.client + '</span>' +
+          '<button class="pip-remove" onclick="removePipelineRow(' + realIdx + ')">x</button>' +
+        '</div>' +
+        (row.note ? '<div class="pip-note">' + row.note + '</div>' : '') +
+        counterHtml +
+        '<div class="stage-btn-row">' + btns + '</div>';
+      el.appendChild(div);
+    });
+  }
+
+  // Recently Declined — with reason field
+  var declinedSection = document.getElementById('declinedSection');
+  var declinedList    = document.getElementById('declinedList');
+  var declinedCount   = document.getElementById('declinedCount');
+  if (declined.length) {
+    declinedSection.style.display = 'block';
+    declinedCount.textContent = '(' + declined.length + ')';
+    declinedList.innerHTML = '';
+    declined.forEach(function(row) {
+      var realIdx  = data.indexOf(row);
+      var daysAgo  = Math.floor((now - (row.declinedAt || now)) / (24*60*60*1000));
+      var daysLeft = 14 - daysAgo;
+      var d = document.createElement('div');
+      d.className = 'declined-row';
+      d.style.flexDirection = 'column';
+      d.style.alignItems    = 'flex-start';
+      d.style.gap           = '6px';
+      d.innerHTML =
+        '<div style="display:flex;align-items:center;gap:8px;width:100%;">' +
+          '<span style="width:7px;height:7px;border-radius:50%;background:var(--red);flex-shrink:0;display:inline-block;"></span>' +
+          '<span class="declined-client">' + row.client + '</span>' +
+          '<span class="declined-days">Removes in ' + daysLeft + ' day' + (daysLeft !== 1 ? 's' : '') + '</span>' +
+          '<button onclick="setStage(' + realIdx + ',\'pitched\')" style="margin-left:auto;padding:3px 8px;border-radius:6px;border:1px solid var(--accent);background:white;color:var(--accent);font-size:10px;font-weight:600;cursor:pointer;font-family:\'DM Sans\',sans-serif;white-space:nowrap;">Restore</button>' +
+        '</div>' +
+        '<div style="display:flex;gap:6px;width:100%;padding-left:15px;">' +
+          '<input class="active-action-input" id="reason-' + realIdx + '" type="text" ' +
+            'placeholder="Reason for decline..." ' +
+            'value="' + (row.declineReason || '').replace(/"/g, '&quot;') + '" ' +
+            'style="flex:1;font-size:11px;padding:5px 8px;" />' +
+          '<button class="active-save-btn" style="font-size:11px;padding:5px 10px;" ' +
+            'onclick="saveDeclineReason(' + realIdx + ')">Save</button>' +
+        '</div>';
+      declinedList.appendChild(d);
+    });
+  } else {
+    declinedSection.style.display = 'none';
+  }
+
+  // Wins celebration
+  var winsSection = document.getElementById('winsSection');
+  var winsList    = document.getElementById('winsList');
+  var winsCount   = document.getElementById('winsCount');
+  if (won.length) {
+    winsSection.style.display = 'block';
+    winsCount.textContent = '(' + won.length + ')';
+    winsList.innerHTML = '';
+    won.forEach(function(row) {
+      var d = document.createElement('div');
+      d.style.cssText = 'display:flex;align-items:center;gap:8px;padding:9px 0;border-bottom:1px solid rgba(26,102,64,0.1);';
+      d.innerHTML =
+        '<span style="font-size:16px;">🏆</span>' +
+        '<span style="font-weight:600;font-size:13px;color:var(--green);">' + row.client + '</span>';
+      winsList.appendChild(d);
+    });
+  } else {
+    winsSection.style.display = 'none';
+  }
+}
+
+async function saveDeclineReason(i) {
+  var data   = (window._allData && window._allData.pipeline) ? window._allData.pipeline.slice() : [];
+  if (!data[i]) return;
+  var input  = document.getElementById('reason-' + i);
+  if (!input) return;
+  data[i].declineReason = input.value.trim();
+  await savePipelineToSheet(data);
+  showToast('Reason saved for ' + data[i].client);
+}
+
+async function setStage(i, stage) {
+  var data = (window._allData && window._allData.pipeline) ? window._allData.pipeline.slice() : [];
+  if (!data[i]) return;
+  data[i].status = stage;
+  if (stage === 'declined' && !data[i].declinedAt) data[i].declinedAt = Date.now();
+  if (stage !== 'declined') data[i].declinedAt = null;
+  if (stage === 'awaiting-response' && !data[i].awaitingAt) data[i].awaitingAt = Date.now();
+  if (stage !== 'awaiting-response') data[i].awaitingAt = null;
+  // Save full stage info locally so merge preserves it
+  var stages = {};
+  data.forEach(function(p) {
+    stages[p.client] = {
+      status: p.status,
+      declinedAt: p.declinedAt || null,
+      awaitingAt: p.awaitingAt || null,
+      declineReason: p.declineReason || ''
+    };
+  });
+  localStorage.setItem('sdpn_stages', JSON.stringify(stages));
+  await savePipelineToSheet(data);
+  showToast(data[i].client + ' moved to ' + stage);
+}
+
+async function addPipelineRow() {
+  var client = document.getElementById('pipClient').value.trim();
+  var note   = document.getElementById('pipNote').value.trim();
+  if (!client) { showToast('Enter a client name'); return; }
+  var data = (window._allData && window._allData.pipeline) ? window._allData.pipeline.slice() : [];
+  data.unshift({client:client, note:note, status:'pitched', declinedAt:null});
+  await savePipelineToSheet(data);
+  document.getElementById('pipClient').value = '';
+  document.getElementById('pipNote').value   = '';
+  document.getElementById('pipEditArea').classList.remove('open');
+  showToast('Added: ' + client);
+}
+
+async function removePipelineRow(i) {
+  var data    = (window._allData && window._allData.pipeline) ? window._allData.pipeline.slice() : [];
+  var removed = data.splice(i, 1)[0];
+  await savePipelineToSheet(data);
+  showToast('Removed: ' + removed.client);
+}
+
+async function savePipelineToSheet(pipeline) {
+  try {
+    await fetch(FEED_ENDPOINT, {method:'POST', body:JSON.stringify({action:'save_pipeline', pipeline:pipeline})});
+  } catch(err) {}
+  if (window._allData) window._allData.pipeline = pipeline;
+  renderPipeline(pipeline);
+}
+
+function togglePipelineEdit() {
+  var el = document.getElementById('pipEditArea');
+  el.classList.toggle('open');
+  if (el.classList.contains('open')) document.getElementById('pipClient').focus();
+}
+
+
+// ===== INIT =====
+document.addEventListener('DOMContentLoaded', function() {
+  loadAllData(true);
+  initDesktop();
+});
+
+function initDesktop() {
+  var isDesktop = window.innerWidth >= 1024;
+  document.querySelectorAll('.section').forEach(function(s) {
+    s.style.display = isDesktop ? 'block' : '';
+  });
+  // On mobile, make sure only the active section shows
+  if (!isDesktop) {
+    var active = document.querySelector('.section.active');
+    if (active) active.style.display = 'block';
+  }
+}
+window.addEventListener('resize', initDesktop);
+</script>
+</body>
+</html>
